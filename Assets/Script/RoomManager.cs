@@ -1,5 +1,6 @@
 using Photon.Pun;
 using Photon.Realtime;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -52,4 +53,62 @@ public class RoomManager : MonoBehaviourPunCallbacks
         }
 
     }
+
+    public void OnClickCreateRoom()
+    {
+        // 룸 옵션을 설정합니다.
+        RoomOptions room = new RoomOptions();
+
+        // 최대 접속자의 수를 설정합니다.
+        room.MaxPlayers = byte.Parse(roomPerson.text);
+
+        // 룸의 오픈 여부를 설정합니다.
+        room.IsOpen = true;
+
+        // 로비에서 룸을 노출시킬 지 설정합니다.
+        room.IsVisible = true;
+
+        // 룸을 생성하는 함수
+        PhotonNetwork.CreateRoom(roomName.text, room);
+
+
+    }
+
+    public void AllDeleteRoom()
+    {
+        foreach(Transform trans in roomContent)
+        {
+            Destroy(trans.gameObject);
+        }
+    }
+
+    // 해당 로비에 방 목록의 변경 사항이 있으면 호출되는 함수(추가,삭제,참가)
+    public override void OnRoomListUpdate(List<RoomInfo> roomList)
+    {
+        AllDeleteRoom();
+        UpdateRoom(roomList);
+        CreateRoomObject();
+    }
+
+    private void UpdateRoom(List<RoomInfo> roomList)
+    {
+        for(int i=0; i<roomList.Count; i++)
+        {
+            // 해당 이름의 roomCatalog의 key가 존재한다면 
+            if (roomCatalog.ContainsKey(roomList[i].Name))
+            {
+                // roomList[i].RemovedFromList : (true) 룸에서 삭제가 되었을 때
+                if (roomList[i].RemovedFromList) 
+                {
+                    roomCatalog.Remove(roomList[i].Name);
+                    continue;
+                }
+
+            }
+            roomCatalog[roomList[i].Name] = roomList[i];
+        }
+    }
+
+  
+
 }
